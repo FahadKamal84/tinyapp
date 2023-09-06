@@ -58,6 +58,11 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL);
 });
 
+app.get("/register", (req, res) => {
+  const templateVars = {username: req.cookies["username"]}
+  res.render("urls_register", templateVars);
+})
+
 app.post("/urls/:id/delete", (req,res) => {
   console.log(req.params.id);
   delete urlDatabase[req.params.id];
