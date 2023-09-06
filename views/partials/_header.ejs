@@ -5,6 +5,10 @@
       <input type="text" name= "username" placeholder="username"/>
       <button type="submit">Login</button>
     </form>
+    <% if (username) { %>
+    <h3>Loggin in as: <%= username %></h3>
+    <button type="submit">Logout</button>
+    <% } %>
     <button
       class="navbar-toggler"
       type="button"
