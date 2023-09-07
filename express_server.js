@@ -12,6 +12,15 @@ function generateRandomString() {
   return id;
 };
 
+function findEmail (formEmail, users) {
+  for (let user of Object.values(users)) {
+    if (user.email === formEmail) {
+      return true;
+    };
+  };
+  return false;
+};
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -105,10 +114,17 @@ app.post("/logout", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  const id = generateRandomString();
-  users[id] = {id: id, email: req.body.email, password: req.body.password};
-  res.cookie("user_id", id);
-  console.log(users[id]);
+  const user_id = generateRandomString();
+  if (req.body.email === "" || req.body.password === "") {
+   return res.status(400).end("HTTP error: 400.  Please fill out email AND password field");
+  }
+  if (findEmail(req.body.email, users)) {
+    return res.status(400).end("HTTP ERROR: 400. Cannot register this email. Email already registered");
+  }
+
+  users[user_id] = {id: user_id, email: req.body.email, password: req.body.password};
+  res.cookie("user_id", user_id);
+  console.log(users[user_id]);
   res.redirect("/urls");
 });
 
