@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 
+const bcrypt = require("bcryptjs");
+
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
@@ -194,8 +196,9 @@ app.post("/urls/:id", (req, res) => {
 
 app.post("/login", (req, res) => {
   const userByEmail = findUserByEmail(req.body.email, users);
+  
   if (userByEmail) {
-    if (userByEmail.password === req.body.password) {
+    if (bcrypt.compareSync(req.body.password, userByEmail.password)) {
       const user_id = Object.keys(users).find((key) => users[key] === userByEmail);
       res.cookie("user_id", user_id);
       res.redirect("/urls");
@@ -214,15 +217,18 @@ app.post("/logout", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  const user_id = generateRandomString();
   if (req.body.email === "" || req.body.password === "") {
     return res.status(400).end("HTTP error: 400.  Please fill out email AND password field");
   }
   if (findUserByEmail(req.body.email, users)) {
     return res.status(400).end("HTTP ERROR: 400. Cannot register this email. Email already registered");
   }
+  
+  const user_id = generateRandomString();
+  const password = req.body.password; // found in the req.body object
+  const hashedPassword = bcrypt.hashSync(password, 10);
 
-  users[user_id] = { id: user_id, email: req.body.email, password: req.body.password };
+  users[user_id] = { id: user_id, email: req.body.email, password: hashedPassword };
   res.cookie("user_id", user_id);
   console.log(users[user_id]);
   res.redirect("/urls");
