@@ -12,10 +12,10 @@ function generateRandomString() {
   return id;
 };
 
-function findEmail (formEmail, users) {
+function findUserByEmail (formEmail, users) {
   for (let user of Object.values(users)) {
     if (user.email === formEmail) {
-      return true;
+      return user;
     };
   };
   return false;
@@ -109,13 +109,24 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-//  res.cookie("username", req.body.username);
+const userByEmail = findUserByEmail(req.body.email, users);
+if (userByEmail) {
+  if (userByEmail.password === req.body.password) {
+    const user_id = Object.keys(users).find((key) => users[key] === userByEmail);
+    res.cookie("user_id", user_id);
+    res.redirect("/urls");
+  } else {
+    return res.status(403).end("HTTP error: 403 Forbidden. Incorrect password.")
+  }
+} else {
+  return res.status(403).end("HTTP error: 403 Forbidden. Email not found.")
+}
  res.redirect('/urls');
 });
 
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
-  res.redirect("/urls");
+  res.redirect("/login");
 });
 
 app.post("/register", (req, res) => {
@@ -123,7 +134,7 @@ app.post("/register", (req, res) => {
   if (req.body.email === "" || req.body.password === "") {
    return res.status(400).end("HTTP error: 400.  Please fill out email AND password field");
   }
-  if (findEmail(req.body.email, users)) {
+  if (findUserByEmail(req.body.email, users)) {
     return res.status(400).end("HTTP ERROR: 400. Cannot register this email. Email already registered");
   }
 
