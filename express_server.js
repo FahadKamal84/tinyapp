@@ -29,8 +29,14 @@ function findTinyURL (enteredId) {
   }
 }
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userID: ""
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    userID: ""
+  }
 };
 
 const users = {
@@ -74,7 +80,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id], user: users[req.cookies["user_id"]] };
+  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id].longURL, user: users[req.cookies["user_id"]] };
   res.render("urls_show", templateVars);
 });
 
@@ -84,7 +90,7 @@ app.get("/u/:id", (req, res) => {
   const doesIdExist = findTinyURL(req.params.id);
   
   if (doesIdExist) {
-    const longURL = urlDatabase[req.params.id];
+    const longURL = urlDatabase[req.params.id].longURL;
     res.redirect(longURL);
   } else {
     return res.status(403).end("HTTP error: This tinyURL does not exist")
@@ -114,8 +120,11 @@ app.post("/urls", (req, res) => {
     return res.send("Please log in to your account before creating a tinyURL");
   }
   const id = generateRandomString();
-  urlDatabase[id] = req.body.longURL;
-  console.log(req.body); // Log the POST request body to the console
+  
+  urlDatabase[id] = {longURL: req.body.longURL,
+                      userID: ""};
+  console.log(urlDatabase[id])
+  console.log(req.body.longURL); // Log the POST request body to the console
   res.redirect(`urls/${id}`);  //redirecting to newly generated 6 digit short url id
 });
 
@@ -128,7 +137,7 @@ app.post("/urls/:id/delete", (req, res) => {
 
 app.post("/urls/:id", (req, res) => {
   console.log(req.params.id);
-  urlDatabase[req.params.id] = req.body.updatedURL;
+  urlDatabase[req.params.id].longURL = req.body.updatedURL;
   res.redirect(`/urls`);
 });
 
