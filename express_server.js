@@ -8,11 +8,11 @@ app.use(cookieParser());
 app.set("view engine", "ejs")
 
 function generateRandomString() {
-  const id = Math.random().toString(36).substring(2,8);
+  const id = Math.random().toString(36).substring(2, 8);
   return id;
 };
 
-function findUserByEmail (formEmail, users) {
+function findUserByEmail(formEmail, users) {
   for (let user of Object.values(users)) {
     if (user.email === formEmail) {
       return user;
@@ -21,6 +21,13 @@ function findUserByEmail (formEmail, users) {
   return false;
 };
 
+function findTinyURL (enteredId) {
+  for (let tinyurl of Object.keys(urlDatabase)) {
+    if (tinyurl === enteredId) {
+      return true;
+    }
+  }
+}
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -59,6 +66,9 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
+  if (!req.cookies["user_id"]) {
+    res.redirect("/login");
+  }
   const templateVars = { user: users[req.cookies["user_id"]] }
   res.render("urls_new", templateVars);
 });
@@ -70,33 +80,47 @@ app.get("/urls/:id", (req, res) => {
 
 
 app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id];
-  res.redirect(longURL);
+  
+  const doesIdExist = findTinyURL(req.params.id);
+  
+  if (doesIdExist) {
+    const longURL = urlDatabase[req.params.id];
+    res.redirect(longURL);
+  } else {
+    return res.status(403).end("HTTP error: This tinyURL does not exist")
+  }
 });
 
 app.get("/register", (req, res) => {
-  const templateVars = {user: users[req.cookies["user_id"]]}
+  if (req.cookies["user_id"]) {
+    res.redirect("/urls");
+  }
+  const templateVars = { user: users[req.cookies["user_id"]] }
   res.render("urls_register", templateVars);
 })
 
-app.get("/login", (req,res) => {
-  const templateVars = {user: users[req.cookies["user_id"]]}
-  res.render("urls_login.ejs", templateVars);l
+app.get("/login", (req, res) => {
+  if (req.cookies["user_id"]) {
+    res.redirect("/urls");
+  }
+  const templateVars = { user: users[req.cookies["user_id"]] }
+  res.render("urls_login.ejs", templateVars); l
 })
 
+
+
 app.post("/urls", (req, res) => {
+  if (!req.cookies["user_id"]) {
+    return res.send("Please log in to your account before creating a tinyURL");
+  }
   const id = generateRandomString();
   urlDatabase[id] = req.body.longURL;
   console.log(req.body); // Log the POST request body to the console
   res.redirect(`urls/${id}`);  //redirecting to newly generated 6 digit short url id
 });
 
-app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id];
-  res.redirect(longURL);
-});
 
-app.post("/urls/:id/delete", (req,res) => {
+app.post("/urls/:id/delete", (req, res) => {
   console.log(req.params.id);
   delete urlDatabase[req.params.id];
   res.redirect("/urls");
@@ -109,19 +133,19 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-const userByEmail = findUserByEmail(req.body.email, users);
-if (userByEmail) {
-  if (userByEmail.password === req.body.password) {
-    const user_id = Object.keys(users).find((key) => users[key] === userByEmail);
-    res.cookie("user_id", user_id);
-    res.redirect("/urls");
+  const userByEmail = findUserByEmail(req.body.email, users);
+  if (userByEmail) {
+    if (userByEmail.password === req.body.password) {
+      const user_id = Object.keys(users).find((key) => users[key] === userByEmail);
+      res.cookie("user_id", user_id);
+      res.redirect("/urls");
+    } else {
+      return res.status(403).end("HTTP error: 403 Forbidden. Incorrect password.")
+    }
   } else {
-    return res.status(403).end("HTTP error: 403 Forbidden. Incorrect password.")
+    return res.status(403).end("HTTP error: 403 Forbidden. Email not found.")
   }
-} else {
-  return res.status(403).end("HTTP error: 403 Forbidden. Email not found.")
-}
- res.redirect('/urls');
+  res.redirect('/urls');
 });
 
 app.post("/logout", (req, res) => {
@@ -132,13 +156,13 @@ app.post("/logout", (req, res) => {
 app.post("/register", (req, res) => {
   const user_id = generateRandomString();
   if (req.body.email === "" || req.body.password === "") {
-   return res.status(400).end("HTTP error: 400.  Please fill out email AND password field");
+    return res.status(400).end("HTTP error: 400.  Please fill out email AND password field");
   }
   if (findUserByEmail(req.body.email, users)) {
     return res.status(400).end("HTTP ERROR: 400. Cannot register this email. Email already registered");
   }
 
-  users[user_id] = {id: user_id, email: req.body.email, password: req.body.password};
+  users[user_id] = { id: user_id, email: req.body.email, password: req.body.password };
   res.cookie("user_id", user_id);
   console.log(users[user_id]);
   res.redirect("/urls");
