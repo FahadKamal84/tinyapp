@@ -3,18 +3,18 @@ const { urlDatabase, users } = require("./data");
 function generateRandomString() {
   const id = Math.random().toString(36).substring(2, 8);
   return id;
-};
+}
 
 function findUserByEmail(formEmail, users) {
   for (let user of Object.values(users)) {
     if (user.email === formEmail) {
       return user;
-    };
-  };
+    }
+  }
   return false;
-};
+}
 
-function findTinyURL (enteredId) {
+function findTinyURL(enteredId) {
   for (let tinyurl of Object.keys(urlDatabase)) {
     if (tinyurl === enteredId) {
       return true;
@@ -24,8 +24,8 @@ function findTinyURL (enteredId) {
 
 function urlsForUser(id) {
   let userURLs = {};
-  arrDBVal = Object.values(urlDatabase)
-  arrDBKey = Object.keys(urlDatabase)
+  const arrDBVal = Object.values(urlDatabase);
+  const arrDBKey = Object.keys(urlDatabase);
   for (let i = 0; i < arrDBVal.length; i++) {
     if (arrDBVal[i].userID === id) {
       userURLs[arrDBKey[i]] = arrDBVal[i].longURL;
@@ -36,7 +36,7 @@ function urlsForUser(id) {
   } else {
     return userURLs;
   }
-};
+}
 
 module.exports = {generateRandomString,
                   findUserByEmail,

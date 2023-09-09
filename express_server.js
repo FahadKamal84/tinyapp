@@ -1,25 +1,21 @@
 const express = require("express");
 const app = express();
-const PORT = 8080; // default port 8080
-
+const PORT = 8080;
 const bcrypt = require("bcryptjs");
-
 const { generateRandomString, findUserByEmail, findTinyURL, urlsForUser } = require("./helpers");
-
 const { urlDatabase, users } = require("./data");
+const cookieSession = require('cookie-session');
 
-//const cookieParser = require('cookie-parser');
-//app.use(cookieParser());
 
-cookieSession = require('cookie-session');
 app.use(cookieSession({
   name: 'session',
   keys: ['user_id']
-}))
-
-app.set("view engine", "ejs")
-
+}));
 app.use(express.urlencoded({ extended: true }));
+app.set("view engine", "ejs");
+
+
+///////////////GET ROUTES/////////////////
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -47,7 +43,7 @@ app.get("/urls/new", (req, res) => {
   if (!req.session.user_id) {
     res.redirect("/login");
   }
-  const templateVars = { user: users[req.session.user_id] }
+  const templateVars = { user: users[req.session.user_id] };
   res.render("urls_new", templateVars);
 });
 
@@ -56,14 +52,14 @@ app.get("/urls/:id", (req, res) => {
     return res.send("HTTP Error: Please login.  You have to log in to accesss this page");
   }
   
-  const userURLs = urlsForUser(req.session.user_id)
+  const userURLs = urlsForUser(req.session.user_id);
   for (let keys in userURLs) {
     if (keys === req.params.id) {
       const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id].longURL, user: users[req.session.user_id] };
       res.render("urls_show", templateVars);
     }
-  }  
-  return res.send("HTTP Error: You do not have access to this URL")
+  }
+  return res.send("HTTP Error: You do not have access to this URL");
 });
 
 
@@ -75,7 +71,7 @@ app.get("/u/:id", (req, res) => {
     const longURL = urlDatabase[req.params.id].longURL;
     res.redirect(longURL);
   } else {
-    return res.status(403).end("HTTP error: This tinyURL does not exist")
+    return res.status(403).end("HTTP error: This tinyURL does not exist");
   }
 });
 
@@ -83,19 +79,19 @@ app.get("/register", (req, res) => {
   if (req.session.user_id) {
     res.redirect("/urls");
   }
-  const templateVars = { user: users[req.session.user_id] }
+  const templateVars = { user: users[req.session.user_id] };
   res.render("urls_register", templateVars);
-})
+});
 
 app.get("/login", (req, res) => {
   if (req.session.user_id) {
     res.redirect("/urls");
   }
-  const templateVars = { user: users[req.session.user_id] }
-  res.render("urls_login.ejs", templateVars); 
-})
+  const templateVars = { user: users[req.session.user_id] };
+  res.render("urls_login.ejs", templateVars);
+});
 
-
+///////////////POST ROUTES////////////////
 
 app.post("/urls", (req, res) => {
   if (!req.session.user_id) {
@@ -105,7 +101,7 @@ app.post("/urls", (req, res) => {
   
   urlDatabase[id] = {longURL: req.body.longURL,
                       userID: req.session.user_id};
-  console.log(urlDatabase[id])
+  console.log(urlDatabase[id]);
   console.log(req.body.longURL); // Log the POST request body to the console
   res.redirect(`urls/${id}`);  //redirecting to newly generated 6 digit short url id
 });
@@ -113,9 +109,9 @@ app.post("/urls", (req, res) => {
 
 app.post("/urls/:id/delete", (req, res) => {
   if (!req.session.user_id) {
-    res.send("Please log in.  You need to log in to delete this URL")
+    res.send("Please log in.  You need to log in to delete this URL");
   }
-  const userURLs = urlsForUser(req.session.user_id)
+  const userURLs = urlsForUser(req.session.user_id);
   for (let keys in userURLs) {
     if (keys === req.params.id) {
       console.log(req.params.id);
@@ -128,10 +124,10 @@ app.post("/urls/:id/delete", (req, res) => {
 
 app.post("/urls/:id", (req, res) => {
   if (!req.session.user_id) {
-    res.send("Please log in.  You need to log in to edit URLs")
+    res.send("Please log in.  You need to log in to edit URLs");
   }
 
-  const userURLs = urlsForUser(req.session.user_id)
+  const userURLs = urlsForUser(req.session.user_id);
   for (let keys in userURLs) {
     if (keys === req.params.id) {
       console.log(req.params.id);
@@ -152,10 +148,10 @@ app.post("/login", (req, res) => {
       req.session.user_id = user_id;
       res.redirect("/urls");
     } else {
-      return res.status(403).end("HTTP error: 403 Forbidden. Incorrect password.")
+      return res.status(403).end("HTTP error: 403 Forbidden. Incorrect password.");
     }
   } else {
-    return res.status(403).end("HTTP error: 403 Forbidden. Email not found.")
+    return res.status(403).end("HTTP error: 403 Forbidden. Email not found.");
   }
   res.redirect('/urls');
 });
