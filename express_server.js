@@ -17,24 +17,11 @@ app.set("view engine", "ejs");
 
 ///////////////GET ROUTES/////////////////
 
-app.get("/", (req, res) => {
-  res.send("Hello!");
-});
-
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
-
 app.get("/urls", (req, res) => {
   if (!req.session.user_id) {
     res.redirect("/login");
   }
   const userURLs = urlsForUser(req.session.user_id);
-  console.log(userURLs);
   const templateVars = { urls: userURLs, user: users[req.session.user_id] };
   res.render("urls_index", templateVars);
 });
@@ -101,9 +88,7 @@ app.post("/urls", (req, res) => {
   
   urlDatabase[id] = {longURL: req.body.longURL,
                       userID: req.session.user_id};
-  console.log(urlDatabase[id]);
-  console.log(req.body.longURL); // Log the POST request body to the console
-  res.redirect(`urls/${id}`);  //redirecting to newly generated 6 digit short url id
+  res.redirect(`urls/${id}`);
 });
 
 
@@ -114,7 +99,6 @@ app.post("/urls/:id/delete", (req, res) => {
   const userURLs = urlsForUser(req.session.user_id);
   for (let keys in userURLs) {
     if (keys === req.params.id) {
-      console.log(req.params.id);
       delete urlDatabase[req.params.id];
       res.redirect("/urls");
     }
@@ -130,7 +114,6 @@ app.post("/urls/:id", (req, res) => {
   const userURLs = urlsForUser(req.session.user_id);
   for (let keys in userURLs) {
     if (keys === req.params.id) {
-      console.log(req.params.id);
       urlDatabase[req.params.id].longURL = req.body.updatedURL;
       return res.redirect(`/urls`);
     }
@@ -140,7 +123,6 @@ app.post("/urls/:id", (req, res) => {
 
 app.post("/login", (req, res) => {
   const userByEmail = findUserByEmail(req.body.email, users);
-  console.log(userByEmail);
   if (userByEmail) {
     if (bcrypt.compareSync(req.body.password, userByEmail.password)) {
       const user_id = userByEmail.id;
@@ -169,16 +151,14 @@ app.post("/register", (req, res) => {
   }
   
   const user_id = generateRandomString();
-  const password = req.body.password; // found in the req.body object
+  const password = req.body.password; 
   const hashedPassword = bcrypt.hashSync(password, 10);
 
   users[user_id] = { id: user_id, email: req.body.email, password: hashedPassword };
-  //res.cookie("user_id", user_id);
   req.session.user_id = user_id;
-  console.log(users[user_id]);
   res.redirect("/urls");
 });
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  console.log(`TinyApp listening on port ${PORT}!`);
 });
