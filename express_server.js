@@ -143,8 +143,7 @@ app.post("/login", (req, res) => {
   
   if (userByEmail) {
     if (bcrypt.compareSync(req.body.password, userByEmail.password)) {
-      const user_id = Object.keys(users).find((key) => users[key] === userByEmail);
-      //res.cookie("user_id", user_id);
+      const user_id = userByEmail.id;
       req.session.user_id = user_id;
       res.redirect("/urls");
     } else {
