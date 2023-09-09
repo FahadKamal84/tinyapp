@@ -4,6 +4,10 @@ const PORT = 8080; // default port 8080
 
 const bcrypt = require("bcryptjs");
 
+const { generateRandomString, findUserByEmail, findTinyURL, urlsForUser } = require("./helpers");
+
+const { urlDatabase, users } = require("./data");
+
 //const cookieParser = require('cookie-parser');
 //app.use(cookieParser());
 
@@ -14,68 +18,6 @@ app.use(cookieSession({
 }))
 
 app.set("view engine", "ejs")
-
-function generateRandomString() {
-  const id = Math.random().toString(36).substring(2, 8);
-  return id;
-};
-
-function findUserByEmail(formEmail, users) {
-  for (let user of Object.values(users)) {
-    if (user.email === formEmail) {
-      return user;
-    };
-  };
-  return false;
-};
-
-function findTinyURL (enteredId) {
-  for (let tinyurl of Object.keys(urlDatabase)) {
-    if (tinyurl === enteredId) {
-      return true;
-    }
-  }
-}
-
-function urlsForUser(id) {
-  let userURLs = {};
-  arrDBVal = Object.values(urlDatabase)
-  arrDBKey = Object.keys(urlDatabase)
-  for (let i = 0; i < arrDBVal.length; i++) {
-    if (arrDBVal[i].userID === id) {
-      userURLs[arrDBKey[i]] = arrDBVal[i].longURL;
-    }
-  }
-  if (!userURLs) {
-    return false;
-  } else {
-    return userURLs;
-  }
-};
-
-const urlDatabase = {
-  "b2xVn2": {
-    longURL: "http://www.lighthouselabs.ca",
-    userID: "userRandomID"
-  },
-  "9sm5xK": {
-    longURL: "http://www.google.com",
-    userID: ""
-  }
-};
-
-const users = {
-  userRandomID: {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur",
-  },
-  user2RandomID: {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk",
-  },
-};
 
 app.use(express.urlencoded({ extended: true }));
 
