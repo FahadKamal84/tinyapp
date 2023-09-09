@@ -11,7 +11,7 @@ function findUserByEmail(formEmail, users) {
       return user;
     }
   }
-  return false;
+  return undefined;
 }
 
 function findTinyURL(enteredId) {
@@ -31,11 +31,8 @@ function urlsForUser(id) {
       userURLs[arrDBKey[i]] = arrDBVal[i].longURL;
     }
   }
-  if (!userURLs) {
-    return false;
-  } else {
-    return userURLs;
-  }
+  
+  return userURLs;
 }
 
 module.exports = {generateRandomString,

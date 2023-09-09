@@ -140,7 +140,7 @@ app.post("/urls/:id", (req, res) => {
 
 app.post("/login", (req, res) => {
   const userByEmail = findUserByEmail(req.body.email, users);
-  
+  console.log(userByEmail);
   if (userByEmail) {
     if (bcrypt.compareSync(req.body.password, userByEmail.password)) {
       const user_id = userByEmail.id;
